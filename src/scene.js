@@ -96,15 +96,34 @@ camera.position.z = 15;
 
 
 // create new cube and cube material
-const geometry = new THREE.BoxGeometry( 0.5, 0.5, 0.5);
+const cubeGeometry = new THREE.BoxGeometry( 0.5, 0.5, 0.5);
 const cubeMaterial = new THREE.MeshPhongMaterial({ 
     color: 0x00ffff                         // hex values for (R, G, B) => (0x [ff, ff, ff])
 }); 
-// create and add cube
-const cube = new THREE.Mesh(geometry, cubeMaterial);
-scene.add(cube);
-cube.position.set(5,0,5);
+// create and add cubes
+const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
 
+scene.add(cube);
+cube.rotation.set(0, Math.atan(Math.sqrt(2)), 45*Math.PI/180)
+//cube.position.set(5,0,5);
+// empty object to control the cube
+const emptyObject = new THREE.Object3D();
+emptyObject.add(cube);
+emptyObject.position.set(5,0,5)
+scene.add(emptyObject)
+
+const hoverCubeMaterial = new THREE.MeshPhongMaterial({ 
+    color: 0x00ffff,                         // hex values for (R, G, B) => (0x [ff, ff, ff])
+    opacity: 0.5,
+    transparent: true,
+}); 
+const hoverCube = new THREE.Mesh(cubeGeometry, hoverCubeMaterial);
+scene.add(hoverCube)
+hoverCube.rotation.set(0, Math.atan(Math.sqrt(2)), 45*Math.PI/180)
+const emptyHoverObject = new THREE.Object3D();
+emptyHoverObject.add(hoverCube);
+emptyHoverObject.position.set(5,0,5)
+scene.add(emptyHoverObject)
 
 
 // create array of cubes
@@ -171,6 +190,12 @@ const mouse = {
     y: undefined
 };
 
+// mouse pointer down buffer
+const click = {
+    x: undefined,
+    y: undefined
+}
+
 let frame = 0;
 
 const animate = () => {
@@ -192,7 +217,7 @@ const animate = () => {
 
         const uniqueSquarePoints = [...new Set(squarePoints)]
         // get avg x y z position from 4 points
-        
+        // using running avg calculation
         let px = 0
         let py = 0
         let pz = 0
@@ -200,32 +225,32 @@ const animate = () => {
             let x = planeMesh.geometry.attributes.position.array[uniqueSquarePoints[i]*3]
             let y = planeMesh.geometry.attributes.position.array[uniqueSquarePoints[i]*3+1]
             let z = planeMesh.geometry.attributes.position.array[uniqueSquarePoints[i]*3+2]
-
+            // avg_running = avg_prev + (val_current - avg_prev) / (index_current + 1)
             px += (x - px)/(i+1)
             py += (y - py)/(i+1)
             pz += (z - pz)/(i+1)
         }
         
-        cube.position.set(px,py,pz)
+        emptyHoverObject.position.set(px,py,pz)
 
 
-        console.log(
-            "face tri index:", planeIntersects[0].faceIndex,
-            "\nface poly index:", Math.floor(planeIntersects[0].faceIndex/2),
+        //console.log(
+            //"face tri index:", planeIntersects[0].faceIndex,
+            //"\nface poly index:", Math.floor(planeIntersects[0].faceIndex/2),
             
-            "\ntri a:", planeIntersects[0].face.a, 
-            ", tri b:", planeIntersects[0].face.b, 
-            ", tri c:", planeIntersects[0].face.c,
+            //"\ntri a:", planeIntersects[0].face.a, 
+            //", tri b:", planeIntersects[0].face.b, 
+            //", tri c:", planeIntersects[0].face.c,
             
             //"\ntotal number of points", planeMesh.geometry.attributes.position.array.length/3, 
             //figure out which square mouse is in (because 2 tri-faces make a square)
             
-            "\nposition points of selected square face", squarePoints,
-            "\nunique:", uniqueSquarePoints,
+            //"\nposition points of selected square face", squarePoints,
+            //"\nunique:", uniqueSquarePoints,
             
-            "\n ", uniqueSquarePoints[0],uniqueSquarePoints[1],uniqueSquarePoints[2],uniqueSquarePoints[3],
+            //"\n ", uniqueSquarePoints[0],uniqueSquarePoints[1],uniqueSquarePoints[2],uniqueSquarePoints[3],
 
-            "\navg position x:",px," y:",py," z:",pz,
+            //"\navg position x:",px," y:",py," z:",pz,
 
 
             // planeIntersects[0].faceIndex
@@ -242,7 +267,7 @@ const animate = () => {
 
 
 
-        )
+        //)
 
 
 
@@ -251,8 +276,9 @@ const animate = () => {
     // update animation frame
     frame += 0.01
 
-    cube.rotation.x = frame;
-    cube.rotation.y = frame;
+    emptyObject.rotation.z = frame;
+    emptyHoverObject.rotation.z = frame;
+    //emptyObject.rotation.y = frame;
 
     
 
@@ -263,7 +289,7 @@ const animate = () => {
 const resize = () => {
     // set size of window
     renderer.setSize(window.innerWidth, window.innerHeight)
-    renderer.setPixelRatio(devicePixelRatio)
+    renderer.setPixelRatio(window.devicePixelRatio)
     document.body.appendChild(renderer.domElement)
     
 
@@ -297,3 +323,9 @@ window.addEventListener('mousemove', (event) => {
     mouse.y = -(event.clientY / innerHeight) * 2 + 1
     //console.log("normalized - mouse x: ",mouse.x, "mouse y: ", mouse.y)
   })
+
+window.addEventListener('pointerdown',(event1)=>{
+    click.x = mouse.x
+    click.y = mouse.y
+    console.log("click x: ",click.x, "click y: ", click.y)
+})
