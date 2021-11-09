@@ -3,7 +3,7 @@ import * as THREE from 'three';
 //import * as THREE from 'https://unpkg.com/three@0.126.1/build/three.module.js' // this wont work
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 // handle simple animations
-import gsap from 'gsap';
+//import gsap from 'gsap';
 // simple gui for manipulating and tweaking values
 import * as dat from 'dat.gui';
 //import { Plane } from 'svelthree';
